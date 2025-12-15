@@ -266,26 +266,23 @@
             </div>
         </section>
 
-        @foreach($stories as $story)
         <section class="featured" id="one-feature">
-            <img src="{{ $story->cover_image_url ?? 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1200&q=80' }}" alt="{{ $story->title }}">
+            <img src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1200&q=80" alt="Amsterdam Gezisi">
             <div>
-                @if($story->category)
-                    <div class="category">{{ $story->category }}</div>
-                @endif
-                <h2>{{ $story->title }}</h2>
+                <div class="category">Gezi</div>
+                <h2>Amsterdam Gezisi! Gezdiğim &amp; Gördüğüm Yerler</h2>
                 <div class="meta">
-                    <span>{{ optional($story->published_at)->format('d F Y') }}</span>
+                    <span>26 Aralık 2022</span>
                     <span class="dot"></span>
-                    <span>{{ $story->comments()->where('approved', true)->count() }} yorum</span>
+                    <span>21 yorum</span>
                 </div>
                 <p class="excerpt">
-                    {{ $story->excerpt }}
+                    Herkese kucak dolusu selamlar! Umarım keyfiniz yerindedir. Şu an benim gayet yerinde olduğunu söyleyebilirim çünkü bu yazıyı yazmak için oturunca nedense içimin kıpır kıpır olduğunu hissettim. Aslında aklımda böyle bir blog yazısı yoktu. Çünkü seyahatime çıkarken gördüğüm, gezdiğim yerleri blogumda da paylaşırım kafasında değildim. Ancak düşündüm ki neredeyse yaptığım her şeyi telefonuma kaydetmişken ve hazır...
                 </p>
-                <a class="btn btn-primary" href="{{ route('stories.show', $story->slug) }}">Devamını Oku</a>
+                <a class="btn btn-primary" href="/hikaye-detay">Devamını Oku</a>
             </div>
         </section>
-        @endforeach
+
 
     </main>
 
