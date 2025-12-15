@@ -143,24 +143,30 @@
 
     <main>
         <div class="card">
-            <form>
+            @if(session('status'))
+                <p style="background:#e7f5ff;color:#0b5394;padding:10px 12px;border-radius:8px;margin:0 0 14px;">
+                    {{ session('status') }}
+                </p>
+            @endif
+            <form method="POST" action="{{ route('contact.store') }}">
+                @csrf
                 <div class="field">
                     <label for="name">Adınız <span>(gerekli)</span></label>
-                    <input id="name" name="name" type="text" placeholder="Adınızı yazın">
+                    <input id="name" name="name" type="text" placeholder="Adınızı yazın" value="{{ old('name') }}" required>
                 </div>
                 <div class="field">
                     <label for="email">E-posta adresiniz <span>(gerekli)</span></label>
-                    <input id="email" name="email" type="email" placeholder="ornek@eposta.com">
+                    <input id="email" name="email" type="email" placeholder="ornek@eposta.com" value="{{ old('email') }}" required>
                 </div>
                 <div class="field">
                     <label for="subject">Konu</label>
-                    <input id="subject" name="subject" type="text" placeholder="Konu başlığı">
+                    <input id="subject" name="subject" type="text" placeholder="Konu başlığı" value="{{ old('subject') }}">
                 </div>
                 <div class="field">
                     <label for="message">İletiniz</label>
-                    <textarea id="message" name="message" placeholder="Mesajınızı buraya yazın"></textarea>
+                    <textarea id="message" name="message" placeholder="Mesajınızı buraya yazın">{{ old('message') }}</textarea>
                 </div>
-                <button class="btn" type="button">Gönder</button>
+                <button class="btn" type="submit">Gönder</button>
             </form>
         </div>
 
