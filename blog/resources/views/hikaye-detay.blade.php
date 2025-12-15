@@ -147,6 +147,17 @@
             transition: transform .15s ease, box-shadow .2s ease;
         }
         .btn:hover { transform: translateY(-1px); box-shadow: 0 12px 24px rgba(31,78,121,0.22); }
+        .back-link {
+            display:inline-block;
+            margin-bottom:12px;
+            font-size:14px;
+            color: var(--accent);
+        }
+        .replying {
+            font-size:13px;
+            color: var(--muted);
+            margin-bottom:8px;
+        }
         @media (max-width: 640px) {
             .comment-item { grid-template-columns: 40px 1fr; }
             .avatar { width: 40px; height: 40px; font-size: 13px; }
@@ -155,78 +166,96 @@
 </head>
 <body>
     <div class="hero">
-        <h1>Amsterdam Gezisi! Gezdiğim &amp; Gördüğüm Yerler</h1>
+        <h1>{{ $story->title }}</h1>
         <div class="breadcrumb"><a href="/">Ana sayfa</a> / Hikaye</div>
     </div>
 
     <div class="page">
         <div class="story-card">
-            <div class="story-meta">26 Aralık 2022 • 21 yorum • Gezi</div>
+            <div class="story-meta">
+                {{ optional($story->published_at)->format('d F Y') }}
+                @if($story->category)
+                    • {{ $story->category }}
+                @endif
+            </div>
             <div class="story-content">
-                <p>Yurtdışına çıkma hayallerimi tanıdığım birinin yaşamasını görmek çok keyifli. Bir gün eşimle birlikte yurt dışına çıktığımı hayal ediyorum artık. Dünya turu misalinde. Kendisiyle ara sıra bu tarz diyaloglarımız oluyor. Henüz nikahlı eşim değil ama ruh eşim ve gelecekteki eşim.</p>
-                <p>Bu yazı bana ilk durak konusunda ilham oldu, tabi daha diğerlerini görmedik fikrim her an değişebilir. Ayrı zamanda bir yazar olarak gezi yazılarımı nasıl yazmam gerektiğini kopya çekebileceğim bir yazı oldu. Düşünüp duruyordum ben de. Gönlüne göre gezmeler, devamını heyecanla bekliyorum!</p>
-                <p>Bu bölümde hikayenin tam halini görebilir, fotoğraflarınızı ve detayları ileride admin paneli ile ekleyebilirsiniz.</p>
+                {!! nl2br(e($story->body)) !!}
             </div>
         </div>
 
         <div class="comments">
             <h2>Yorumlar</h2>
 
-            <div class="comment-item">
-                <div class="avatar">BG</div>
-                <div>
-                    <div class="comment-header">
-                        <span class="comment-name">Bages</span>
-                        <span class="comment-date">27 Aralık 2022, 00:03</span>
+            @forelse($comments as $comment)
+                <div class="comment-item">
+                    <div class="avatar">{{ strtoupper(mb_substr($comment->name,0,2,'UTF-8')) }}</div>
+                    <div>
+                        <div class="comment-header">
+                            <span class="comment-name">{{ $comment->name }}</span>
+                            <span class="comment-date">{{ $comment->created_at->format('d.m.Y H:i') }}</span>
+                        </div>
+                        <p class="comment-body">{{ $comment->body }}</p>
+                        <a href="#comment-form" class="reply" onclick="startReply({{ $comment->id }}, '{{ addslashes($comment->name) }}'); return false;">Cevapla</a>
                     </div>
-                    <p class="comment-body">Yurtdışına çıkma hayallerimi tanıdığım birinin yaşamasını görmek çok keyifli. Bir gün eşimle birlikte yurt dışına çıktığımı hayal ediyorum artık.</p>
-                    <a href="#" class="reply">Cevapla</a>
                 </div>
-            </div>
 
-            <div class="comment-item reply">
-                <div class="avatar">AD</div>
-                <div>
-                    <div class="comment-header">
-                        <span class="comment-name">Yazar Yanıtı</span>
-                        <span class="comment-date">27 Aralık 2022, 08:45</span>
+                @foreach($comment->replies as $reply)
+                    <div class="comment-item reply">
+                        <div class="avatar">{{ strtoupper(mb_substr($reply->name,0,2,'UTF-8')) }}</div>
+                        <div>
+                            <div class="comment-header">
+                                <span class="comment-name">{{ $reply->name }}</span>
+                                <span class="comment-date">{{ $reply->created_at->format('d.m.Y H:i') }}</span>
+                            </div>
+                            <p class="comment-body">{{ $reply->body }}</p>
+                        </div>
                     </div>
-                    <p class="comment-body">Güzel dileklerin için teşekkür ederim! Yeni durakları paylaştıkça güncelleyeceğim, takipte kalın.</p>
-                </div>
-            </div>
+                @endforeach
+            @empty
+                <p>Henüz yorum yok. İlk yorumu sen yaz!</p>
+            @endforelse
 
-            <div class="comment-item">
-                <div class="avatar">BN</div>
-                <div>
-                    <div class="comment-header">
-                        <span class="comment-name">bernaoduneu</span>
-                        <span class="comment-date">28 Aralık 2022, 12:08</span>
-                    </div>
-                    <p class="comment-body">Ne kadar güzel olur bu! Aynı istek ve hedefte buluşabiliyor olmamız da çok değerli. Beraber yeni yerler keşfettiğiniz, gezdiğiniz yerlerin yazısını bir an önce okumayı iple çekiyorum.</p>
-                    <a href="#" class="reply">Cevapla</a>
-                </div>
-            </div>
-
-            <form class="comment-form">
+            <form class="comment-form" id="comment-form" method="POST" action="{{ route('stories.comment', $story->slug) }}">
+                @csrf
                 <h3>Bir cevap yazın</h3>
+                <div id="replying-to" class="replying" style="display:none;">
+                    <span id="replying-text"></span>
+                    <button type="button" onclick="cancelReply()" style="margin-left:8px;border:none;background:none;color:var(--accent);cursor:pointer;">İptal</button>
+                </div>
+                <input type="hidden" name="parent_id" id="parent_id" value="">
                 <div class="field" style="margin-bottom:16px;">
                     <label for="comment">Yorum</label>
-                    <textarea id="comment" name="comment" placeholder="Yorumunuzu yazın"></textarea>
+                    <textarea id="comment" name="comment" placeholder="Yorumunuzu yazın">{{ old('comment') }}</textarea>
                 </div>
                 <div class="form-row">
                     <div>
                         <label for="name">İsim*</label>
-                        <input id="name" name="name" type="text" placeholder="İsminiz">
+                        <input id="name" name="name" type="text" placeholder="İsminiz" value="{{ old('name') }}">
                     </div>
                     <div>
                         <label for="email">E-posta*</label>
-                        <input id="email" name="email" type="email" placeholder="ornek@eposta.com">
+                        <input id="email" name="email" type="email" placeholder="ornek@eposta.com" value="{{ old('email') }}">
                     </div>
                 </div>
-                <button class="btn" type="button">Yorum Gönder</button>
+                <button class="btn" type="submit">Yorum Gönder</button>
             </form>
         </div>
     </div>
+
+    <script>
+        function startReply(commentId, name) {
+            document.getElementById('parent_id').value = commentId;
+            const box = document.getElementById('replying-to');
+            const text = document.getElementById('replying-text');
+            text.textContent = name + ' kullanıcısına cevap yazıyorsunuz.';
+            box.style.display = 'block';
+        }
+        function cancelReply() {
+            document.getElementById('parent_id').value = '';
+            document.getElementById('replying-to').style.display = 'none';
+        }
+    </script>
 </body>
 </html>
+
 
