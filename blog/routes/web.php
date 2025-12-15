@@ -20,3 +20,10 @@ Route::get('/giris-sayfa.html', function () {
 Route::get('/sifre-degistirme-sayfa.html', function () {
     return view('sifre-degistirme-sayfa');
 });
+
+Route::get('/hikaye-detay', function () {
+    return view('hikaye-detay');
+});
+Route::get('/iletisim', function () {
+    return view('iletisim');
+});
